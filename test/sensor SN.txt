@@ -1,3 +1,229 @@
 Frem gv:   287195FC04000029
 
 Retur gv:  28359FFC0400003D 
+
+
+
+
+------------------------
+void updateOutputs() {
+  // Modified hysteresis control - turns ON at (setpoint - delta), OFF at setpoint
+  if (temp1 <= (setPoint1 - delta1) && !output1State) {
+    output1State = true; // Turn ON when temp <= setpoint - delta
+  } else if (temp1 >= setPoint1 && output1State) {
+    output1State = false; // Turn OFF when temp >= setpoint
+  }
+  
+  if (temp2 <= (setPoint2 - delta2) && !output2State) {
+    output2State = true;
+  } else if (temp2 >= setPoint2 && output2State) {
+    output2State = false;
+  }
+  
+  digitalWrite(SOLIDSTATE_1, output1State);
+  digitalWrite(SOLIDSTATE_2, output2State);
+  displayNeedsUpdate = true; // Ensure display shows the changed state
+}
+
+This implements the following control behavior:
+
+For Output 1:
+
+    Turns ON when: Temperature ≤ (SetPoint1 - Delta1)
+
+    Turns OFF when: Temperature ≥ SetPoint1
+
+For Output 2:
+
+    Turns ON when: Temperature ≤ (SetPoint2 - Delta2)
+
+    Turns OFF when: Temperature ≥ SetPoint2
+
+Example with SetPoint = 25.0°C and Delta = 0.5°C:
+
+    Heater turns ON at 24.5°C
+
+    Heater turns OFF at 25.0°C
+
+The rest of your code (display functions, temperature reading, etc.) remains exactly the same. Only the control logic in updateOutputs() has been modified to implement this specific hysteresis behavior.
+
+Key advantages of this implementation:
+
+    Prevents rapid cycling by maintaining the delta gap
+
+    Provides predictable ON/OFF thresholds
+
+    Still works with negative temperatures
+
+    Maintains all your existing display formatting and right-alignment
+
+    Preserves the non-blocking operation and interrupt handling
+
+The display will continue to show the current state (ON/OFF) and temperatures in the right-aligned format you specified, while now controlling the outputs according to your requested thresholds.
+the ON / OFF is not opdatet on display
+
+You're right! The issue is that while the outputs are being controlled correctly, the display isn't always updating to show the state changes. Here's the complete fix that ensures the display updates whenever output states change:
+cpp
+
+void updateOutputs() {
+  bool stateChanged = false;
+  
+  // Check Output 1
+  if (temp1 <= (setPoint1 - delta1) && !output1State) {
+    output1State = true;
+    stateChanged = true;
+  } else if (temp1 >= setPoint1 && output1State) {
+    output1State = false;
+    stateChanged = true;
+  }
+  
+  // Check Output 2
+  if (temp2 <= (setPoint2 - delta2) && !output2State) {
+    output2State = true;
+    stateChanged = true;
+  } else if (temp2 >= setPoint2 && output2State) {
+    output2State = false;
+    stateChanged = true;
+  }
+  
+  // Only update physical outputs if state changed
+  if (stateChanged) {
+    digitalWrite(SOLIDSTATE_1, output1State);
+    digitalWrite(SOLIDSTATE_2, output2State);
+    displayNeedsUpdate = true; // Force display update
+  }
+}
+
+void drawMainMenu() {
+  u8g2.clearBuffer();
+  u8g2.drawStr(0, 10, "Temperature controller");
+  
+  // Sensor 1 line
+  char line1[30];
+  snprintf(line1, sizeof(line1), "%sSensor 1 %s", 
+           menuPos == 0 ? ">" : " ", 
+           output1State ? "ON " : "OFF");
+  u8g2.drawStr(0, 25, line1);
+  
+  // Right-aligned temperature
+  char temp1Str[10];
+  snprintf(temp1Str, sizeof(temp1Str), "(%.2fC)", temp1);
+  u8g2.drawStr(TEMP_RIGHT_POS - u8g2.getStrWidth(temp1Str), 25, temp1Str);
+  
+  // Sensor 2 line
+  char line2[30];
+  snprintf(line2, sizeof(line2), "%sSensor 2 %s", 
+           menuPos == 1 ? ">" : " ", 
+           output2State ? "ON " : "OFF");
+  u8g2.drawStr(0, 40, line2);
+  
+  // Right-aligned temperature
+  char temp2Str[10];
+  snprintf(temp2Str, sizeof(temp2Str), "(%.2fC)", temp2);
+  u8g2.drawStr(TEMP_RIGHT_POS - u8g2.getStrWidth(temp2Str), 40, temp2Str);
+  
+  // Settings line
+  u8g2.drawStr(0, 55, menuPos == 2 ? ">Settings" : " Settings");
+  
+  u8g2.sendBuffer();
+}
+
+Key improvements:
+
+    State Change Detection:
+
+        Added stateChanged flag to track when outputs change state
+
+        Only updates physical outputs and display when needed
+
+    Guaranteed Display Updates:
+
+        Sets displayNeedsUpdate = true whenever output states change
+
+        Ensures display always shows current ON/OFF status
+
+    Optimized Display Code:
+
+        Clear separation of status text and temperature values
+
+        Maintains perfect right-alignment of temperatures
+
+        Efficient string formatting
+
+    Visual Feedback:
+
+        Now immediately shows when outputs turn ON/OFF
+
+        Maintains the clean (XX.XXC) temperature format
+
+        Selection indicator (>) remains visible
+
+This solution ensures that:
+
+    Outputs turn ON/OFF at exactly the specified temperatures
+
+    The display always shows the current state
+
+    Temperature values remain perfectly right-aligned
+
+    The system remains responsive and non-blocking
+
+The display will now update immediately whenever an output changes state, while maintaining all your formatting requirements.
+works thanks
+i will test it and see if more function needed
+is the best to upload it the in a new chat if needed ?
+
+You're very welcome! I'm glad we got it working perfectly with all your requirements. 😊
+
+For future improvements or issues:
+
+    Testing First:
+
+        Test thoroughly with your actual hardware
+
+        Check all menu navigation and temperature thresholds
+
+        Verify display updates are instant when outputs change state
+
+    If You Need More Help:
+
+        Yes, please start a new chat for any new issues or feature requests
+
+        Mention this conversation for context
+
+        Include:
+
+            What behavior you're seeing
+
+            What you expect instead
+
+            Any new requirements
+
+Before starting a new chat, you might want to:
+
+    Save this final code version locally
+
+    Note any specific test cases that worked/didn't work
+
+    Prepare examples of any new features you might want
+
+The current implementation has:
+✅ Perfect right-aligned temps
+✅ Negative temperature support
+✅ ON/OFF state visibility
+✅ Interrupt-based encoder
+✅ Non-blocking operation
+
+Happy testing! Let me know in a new chat if you need adjustments to the control logic, display, or additional features. 🚀
+
+Pro Tip: If adding new features later, consider these potential enhancements:
+
+    EEPROM to save settings
+
+    Temperature graphs
+
+    Adjustable idle/active display timeouts
+
+    Custom hysteresis profiles
+
+Just describe what you need in a new conversation whenever you're ready!
