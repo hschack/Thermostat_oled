@@ -227,3 +227,50 @@ Pro Tip: If adding new features later, consider these potential enhancements:
     Custom hysteresis profiles
 
 Just describe what you need in a new conversation whenever you're ready!
+
+
+i need code for a device 
+Hardware
+Microcontroler: STM32F411 (Blackpill)
+Display SH1106 128X64
+// SH1106 128x64 OLED Display
+#define OLED_SDA PB7
+#define OLED_SCL PB6
+Rotary Encoder EC11
+// Encoder pin
+#define ENC_A PB4
+#define ENC_B PB3
+#define ENC_SW PB5
+Sensor 1 1-wire DS18B20 (Resolution 12 Bits)
+Sensor 2 1-wire DS18B20 (Resolution 12 Bits)
+// DS18B20 1-wire pin
+#define OneWirePin  PA5
+
+// output for solidstate rele
+#define Solistate_1 PA3
+#define Solistate_2 PA2
+
+Display menu (Main)
+Line 1 Temperatur controler
+Line 2 Sensor 1  ON       XX.xx C
+Line 3 Sensor 2  OFF      XX.xx C
+Line 4 Setting
+The ON / OFF show the output state and the XX.xx is the actuel sensor value 
+
+Display Setting menu
+Line 1 Seting menu
+Line 2 Set output 1
+Line 3 Set output 1
+Line 4 Not in use now
+
+When press on Output x it has to go in an setting where can set Output turnon temperatur and a delta for turn off in step in 0.5 C
+or now no eeprom change saved in ram
+
+I use Platfornio
+And the code shal be nonblocking (State machine) Ad please build the function as Switch case (for easy update)
+
+In loop call display update (main) 1000 mS and updte temperatur and output 1000 mS
+
+#include <Arduino.h>
+#include <U8g2lib.h>
+#include "OneWireSTM.h"

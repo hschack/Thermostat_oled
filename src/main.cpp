@@ -22,9 +22,9 @@ U8G2_SH1106_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, /* reset=*/ U8X8_PIN_NONE);
 #define IDLE_TIMEOUT 3000
 
 // Function prototypes
-void updateEncoder();
 void setup();
 void loop();
+void updateEncoder();
 void readTemperatures();
 void updateOutputs();
 void handleEncoderButton();
@@ -62,22 +62,7 @@ int menuPos = 0;
 bool settingActive = false;
 float* currentSetting = nullptr;
 
-// Interrupt Service Routine for encoder
-void updateEncoder() {
-  int MSB = digitalRead(ENC_A);
-  int LSB = digitalRead(ENC_B);
-  int encoded = (MSB << 1) | LSB;
-  int sum = (lastEncoded << 2) | encoded;
 
-  if (sum == 0b1101 || sum == 0b0100 || sum == 0b0010 || sum == 0b1011) {
-    encoderPos++;
-  } else if (sum == 0b1110 || sum == 0b0111 || sum == 0b0001 || sum == 0b1000) {
-    encoderPos--;
-  }
-  lastEncoded = encoded;
-  lastInteractionTime = millis();
-  isActiveMode = true;
-}
 
 void setup() {
   pinMode(ENC_A, INPUT_PULLUP);
@@ -134,6 +119,23 @@ void loop() {
     lastDisplayUpdate = currentMillis;
     displayNeedsUpdate = false;
   }
+}
+
+// Interrupt Service Routine for encoder
+void updateEncoder() {
+  int MSB = digitalRead(ENC_A);
+  int LSB = digitalRead(ENC_B);
+  int encoded = (MSB << 1) | LSB;
+  int sum = (lastEncoded << 2) | encoded;
+
+  if (sum == 0b1101 || sum == 0b0100 || sum == 0b0010 || sum == 0b1011) {
+    encoderPos++;
+  } else if (sum == 0b1110 || sum == 0b0111 || sum == 0b0001 || sum == 0b1000) {
+    encoderPos--;
+  }
+  lastEncoded = encoded;
+  lastInteractionTime = millis();
+  isActiveMode = true;
 }
 
 void readTemperatures() {
