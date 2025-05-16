@@ -14,6 +14,7 @@ U8G2_SH1106_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, /* reset=*/ U8X8_PIN_NONE);
 #define OneWirePin PA5
 #define SOLIDSTATE_1 PA3
 #define SOLIDSTATE_2 PA2
+#define testPin PA1
 
 // Timing constants
 #define TEMP_UPDATE_INTERVAL 1000
@@ -70,6 +71,7 @@ void setup() {
   pinMode(ENC_SW, INPUT_PULLUP);
   pinMode(SOLIDSTATE_1, OUTPUT);
   pinMode(SOLIDSTATE_2, OUTPUT);
+  pinMode(testPin, OUTPUT);
   
   attachInterrupt(digitalPinToInterrupt(ENC_A), updateEncoder, CHANGE);
   attachInterrupt(digitalPinToInterrupt(ENC_B), updateEncoder, CHANGE);
@@ -95,7 +97,8 @@ void setup() {
   }
 }
 
-void loop() {
+void loop() {  
+  digitalWrite(testPin, HIGH);
   handleEncoderButton();
   handleMenuNavigation();
   handleStateMachine();
@@ -119,6 +122,7 @@ void loop() {
     lastDisplayUpdate = currentMillis;
     displayNeedsUpdate = false;
   }
+  digitalWrite(testPin, LOW);
 }
 
 // Interrupt Service Routine for encoder
